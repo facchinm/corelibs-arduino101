@@ -19,6 +19,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 #include "Arduino.h"
 #include "portable.h"
+#include "pins_arduino.h"
+#include "interrupt.h"
+#include "conf.h"
+#include "aux_regs.h"
 
 #ifdef __cplusplus
  extern "C" {
@@ -49,9 +53,91 @@ static inline uint32_t mapResolution(uint32_t value, uint32_t from, uint32_t to)
          return value << (to-from);
 }
 
+static uint8_t _pin;
+static int _val;
+static int _counter;
+
+static void timer1_isr(void)
+{
+    /* clear the interrupt (by writing 0 to IP bit of the control register) */
+    aux_reg_write(ARC_V2_TMR1_CONTROL, ARC_V2_TMR_CTRL_NH | ARC_V2_TMR_CTRL_IE);
+
+    if (_counter > (1 << _writeResolution)) {
+        _counter = 0;
+    }
+    _counter++;
+    if (_counter > _val) {
+        digitalWrite(_pin, LOW);
+    } else {
+        digitalWrite(_pin, HIGH);
+    }
+}
+
+void analogWriteSoftware(uint8_t pin, int val)
+{
+    // SoftwarePWM, using timer1, incompatible with Servo and Tone libraries
+
+    if (_pin != pin) {
+        interrupt_disable(ARCV2_IRQ_TIMER1);
+        digitalWrite(_pin, LOW);
+    }
+
+    _pin = pin;
+    _val = val;
+
+    if (val <= 0) {
+        uint32_t saved;
+        uint32_t ctrl_val;   /* timer control register value */
+
+        saved = interrupt_lock();
+
+        /* disable interrupt generation */
+        ctrl_val = aux_reg_read(ARC_V2_TMR1_CONTROL);
+        aux_reg_write(ARC_V2_TMR1_CONTROL, ctrl_val & ~ARC_V2_TMR_CTRL_IE);
+
+        interrupt_unlock(saved);
+
+        /* disable interrupt in the interrupt controller */
+        interrupt_disable(ARCV2_IRQ_TIMER1);
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, LOW);
+    } else if (val >= ((1 << _writeResolution) - 1)) {
+        /* Use GPIO for 100% duty cycle (always on)  */
+        pinMode(pin, OUTPUT);
+        digitalWrite(pin, HIGH);
+    } else {
+        pinMode(pin, OUTPUT);
+
+        /* ensure that the timer will not generate interrupts */
+        aux_reg_write(ARC_V2_TMR1_CONTROL, 0);
+        aux_reg_write(ARC_V2_TMR1_COUNT, 0);    /* clear the count value */
+
+        /* connect specified routine/parameter to the timer 0 interrupt vector */
+        interrupt_connect(ARCV2_IRQ_TIMER1, timer1_isr);
+
+        /*
+         * Set the reload value to achieve the configured tick rate, enable the
+         * counter and interrupt generation.
+         *
+         * The global variable 'tickunit' represents the #cycles/tick.
+         */
+
+        aux_reg_write(ARC_V2_TMR1_LIMIT, 256); /* write the limit value */
+        /* count only when not halted for debug and enable interrupts */
+        aux_reg_write(ARC_V2_TMR1_CONTROL, ARC_V2_TMR_CTRL_NH | ARC_V2_TMR_CTRL_IE);
+        aux_reg_write(ARC_V2_TMR1_COUNT, 0); /* write the start value */
+
+        /* Everything has been configured. It is now safe to enable the interrupt */
+        interrupt_enable(ARCV2_IRQ_TIMER1);
+    }
+}
+
 void analogWrite(uint8_t pin, int val)
 {
-    if (! digitalPinHasPWM(pin)) return;
+    if (! digitalPinHasPWM(pin)) {
+        analogWriteSoftware(pin, val);
+        return;
+    }
 
     if (val <= 0) {
         /* Use GPIO for 0% duty cycle (always off)  */
