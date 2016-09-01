@@ -39,6 +39,7 @@ public:
   }
   void clear();
   void write(uint32_t address, uint32_t data);
+  void write(uint32_t address, uint8_t data) {write8(address, data);};
   void write8(uint32_t address, uint8_t data);
   void update(uint32_t addr, uint32_t value);
   void update8(uint32_t addr, uint8_t value);
@@ -55,13 +56,13 @@ public:
   template< typename T > T &get(uint32_t addr, T &t)
   {
     //make sure address is valid
-    if((addr > 0x7FC) || (addr%4))
+    if((addr > 0x7FF))
     {
       return t;
     }
     int byteCount = sizeof(T);
     //return if size of object is greater than size of EEPROM
-    if(byteCount > EEPROM_SIZE)
+    if(addr + byteCount > EEPROM_SIZE)
     {
       return t;
     }
@@ -74,76 +75,36 @@ public:
     delete bytes;
     return t;
   }
+
   template< typename T > T put(uint32_t addr, T t)
   {
     //make sure address is valid
-    if((addr > 0x7FC) || (addr%4))
+    if((addr > 0x7FF))
     {
       return t;
     }
-    uint32_t rom_wr_ctrl = 0;
+
     int byteCount = sizeof(T);
     //return if size of object is greater than size of EEPROM
-    if(byteCount > EEPROM_SIZE)
+    if(addr + byteCount > EEPROM_SIZE)
     {
       return t;
     }
-    
-    size_t size = (sizeof(T)/4 + (((sizeof(T)%4)>1) ? 1 : 0));
-    uint32_t *dwords = to_dwords(t);
-    
-    //check if address is empty and available for writing new data
-    bool blockAvailable = true;
-    for(int i =0; i < size; i++)
+
+    byte *bytes = to_bytes(t);
+    for(int i = 0; i < byteCount; i++)
     {
-      uint32_t data32 = read(addr+i*sizeof(uint32_t));
-      if(data32 != 0xFFFFFFFF)
-      {
-        blockAvailable = false;
-      }
+      write8(addr+i, bytes[i]);
     }
-    if(blockAvailable)
-    {
-      for(int i = 0; i<size; i++)
-      {
-        write(addr+i*sizeof(uint32_t), dwords[i]);
-      }
-    }
-    else
-    {
-      //read entire 2k of data
-      uint32_t blockdata[EEPROM_SIZE/4];
-      for(int i = 0; i < EEPROM_SIZE/4; i++)
-      {
-        blockdata[i] = read(i*sizeof(uint32_t));
-      }
-      
-      //update blockdata buffer
-      for(int i = 0; i<size; i++)
-      {
-        blockdata[addr/4 + i] = dwords[i];
-      }
-      
-      //clear EEPROM area
-      clear();
-      
-      //write back all data with update data on passed address
-      for(int i = 0; i < EEPROM_SIZE/4; i++)
-      {
-        //store data into ROM_WR_DATA register
-        *(uint32_t*)(ROM_WR_DATA) = blockdata[i];
-        addr = EEPROM_OFFSET + i*sizeof(uint32_t);
-        rom_wr_ctrl = (addr)<<2; //shift left 2 bits to store offset into bits 19:2 (WR_ADDR)
-        rom_wr_ctrl |= 0x00000001; //set (WR_REQ) bit
-        *(uint32_t*)(ROM_WR_CTRL) = rom_wr_ctrl;
-        delay(3); //give it enough time to finish writing
-      }
-    }
-    delete dwords;
+    from_bytes(bytes, t);
+    delete bytes;
     return t;
   }
 
 private:
+
+  bool clearCalled = false;
+
   template< typename T > byte* to_bytes(const T& object)
   {
     size_t buffer_size = sizeof(object);

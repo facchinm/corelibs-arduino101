@@ -11,7 +11,7 @@
 
 // start reading from the first byte (address 0) of the EEPROM
 int address = 0;
-unsigned long value;
+uint8_t value;
 
 void setup() {
   // initialize serial and wait for port to open:
@@ -23,7 +23,7 @@ void setup() {
 
 void loop() {
   // read a byte from the current address of the EEPROM
-  value = EEPROM.read(address);
+  value = EEPROM.read8(address);
 
   Serial.print(address);
   Serial.print("\t");
@@ -31,7 +31,7 @@ void loop() {
   Serial.println();
 
   //increment address by 4 since we are using DWORDs and we have a granularity of a DWORD or 4 bytes
-  address = address + 4;
+  address = address +1;
   if (address == EEPROM.length()) {
     address = 0;
   }
