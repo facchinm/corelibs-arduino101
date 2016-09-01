@@ -22,7 +22,7 @@ void setup() {
 }
 
 void loop() {
-  // read a dword from the current address of the EEPROM
+  // read a byte from the current address of the EEPROM
   value = EEPROM.read(address);
 
   Serial.print(address);
@@ -30,8 +30,8 @@ void loop() {
   Serial.print(value, DEC);
   Serial.println();
 
-  //increment address
-  address++;
+  //increment address by 4 since we are using DWORDs and we have a granularity of a DWORD or 4 bytes
+  address = address + 4;
   if (address == EEPROM.length()) {
     address = 0;
   }
