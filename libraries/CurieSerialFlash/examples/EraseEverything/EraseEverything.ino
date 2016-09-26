@@ -26,10 +26,10 @@ void setup() {
   while (!Serial && (millis() - startMillis < 10000)) ;
   delay(100);
 
-  SerialFlash.begin(SPI1, FlashChipSelect);
+  CurieSerialFlash.begin(SPI1, FlashChipSelect);
   unsigned char id[5];
-  SerialFlash.readID(id);
-  unsigned long size = SerialFlash.capacity(id);
+  CurieSerialFlash.readID(id);
+  unsigned long size = CurieSerialFlash.capacity(id);
 
   if (size > 0) {
     Serial.print("Flash Memory has ");
@@ -42,10 +42,10 @@ void setup() {
     Serial.print(seconds);
     Serial.println(" seconds.");
     Serial.println("  Yes, full chip erase is SLOW!");
-    SerialFlash.eraseAll();
+    CurieSerialFlash.eraseAll();
     unsigned long dotMillis = millis();
     unsigned char dotcount = 0;
-    while (SerialFlash.ready() == false) {
+    while (CurieSerialFlash.ready() == false) {
       if (millis() - dotMillis > 1000) {
         dotMillis = dotMillis + 1000;
         Serial.print(".");

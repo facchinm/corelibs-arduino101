@@ -88,15 +88,15 @@ void setup(){
 
   pinMode(13, OUTPUT);
   
-  SerialFlash.begin(SPI1, CSPIN);
+  CurieSerialFlash.begin(SPI1, CSPIN);
 
   //We start by formatting the flash...
   uint8_t id[5];
-  SerialFlash.readID(id);
-  SerialFlash.eraseAll();
+  CurieSerialFlash.readID(id);
+  CurieSerialFlash.eraseAll();
   
   //Flash LED at 1Hz while formatting
-  while (!SerialFlash.ready()) {
+  while (!CurieSerialFlash.ready()) {
     delay(500);
     digitalWrite(13, HIGH);
     delay(500);
@@ -190,13 +190,13 @@ void setup(){
           flashBufferIndex = 0;
           escape = 0;
           
-          if (SerialFlash.exists(filename)){
-            SerialFlash.remove(filename);  //It doesn't reclaim the space, but it does let you create a new file with the same name.
+          if (CurieSerialFlash.exists(filename)){
+            CurieSerialFlash.remove(filename);  //It doesn't reclaim the space, but it does let you create a new file with the same name.
           }
           
           //Create a new file and open it for writing
-          if (SerialFlash.create(filename, fileSize)) {
-            flashFile = SerialFlash.open(filename);
+          if (CurieSerialFlash.create(filename, fileSize)) {
+            flashFile = CurieSerialFlash.open(filename);
             if (!flashFile) {
               //Error flash file open
               flushError();

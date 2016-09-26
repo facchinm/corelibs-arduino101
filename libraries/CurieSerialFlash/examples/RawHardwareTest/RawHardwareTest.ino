@@ -48,7 +48,7 @@ void setup() {
   delay(100);
 
   Serial.println("Raw SerialFlash Hardware Test");
-  SerialFlash.begin(SPI1, FlashChipSelect);
+  CurieSerialFlash.begin(SPI1, FlashChipSelect);
 
   if (test()) {
     Serial.println();
@@ -75,7 +75,7 @@ bool test() {
   // Read the chip identification
   Serial.println();
   Serial.println("Read Chip Identification:");
-  SerialFlash.readID(buf);
+  CurieSerialFlash.readID(buf);
   Serial.print("  JEDEC ID:     ");
   Serial.print(buf[0], HEX);
   Serial.print(" ");
@@ -85,12 +85,12 @@ bool test() {
   Serial.print("  Part Nummber: ");
   Serial.println(id2chip(buf));
   Serial.print("  Memory Size:  ");
-  chipsize = SerialFlash.capacity(buf);
+  chipsize = CurieSerialFlash.capacity(buf);
   Serial.print(chipsize);
   Serial.println(" bytes");
   if (chipsize == 0) return false;
   Serial.print("  Block Size:   ");
-  blocksize = SerialFlash.blockSize();
+  blocksize = CurieSerialFlash.blockSize();
   Serial.print(blocksize);
   Serial.println(" bytes");
 
@@ -106,7 +106,7 @@ bool test() {
   count = 0;
   first = true;
   while (address < chipsize) {
-    SerialFlash.read(address, buf, 8);
+    CurieSerialFlash.read(address, buf, 8);
     //Serial.print("  addr = ");
     //Serial.print(address, HEX);
     //Serial.print(", data = ");
@@ -148,14 +148,14 @@ bool test() {
     address = 0;
     first = true;
     while (address < chipsize) {
-      SerialFlash.read(address, buf, 8);
+      CurieSerialFlash.read(address, buf, 8);
       if (is_erased(buf, 8)) {
         create_signature(address, sig);
         //Serial.printf("write %08X: data: ", address);
         //printbuf(sig, 8);
-        SerialFlash.write(address, sig, 8);
-        while (!SerialFlash.ready()) ; // wait
-        SerialFlash.read(address, buf, 8);
+        CurieSerialFlash.write(address, sig, 8);
+        while (!CurieSerialFlash.ready()) ; // wait
+        CurieSerialFlash.read(address, buf, 8);
         if (equal_signatures(buf, sig) == false) {
           Serial.print("  error writing signature at ");
           Serial.println(address);
@@ -190,7 +190,7 @@ bool test() {
   address = 0;
   first = true;
   while (address < chipsize) {
-    SerialFlash.read(address, buf, 8);
+    CurieSerialFlash.read(address, buf, 8);
     create_signature(address, sig);
     if (equal_signatures(buf, sig) == false) {
       Serial.print("  error in signature at ");
@@ -226,7 +226,7 @@ bool test() {
   address = testIncrement - 8;
   first = true;
   while (address < chipsize - 8) {
-    SerialFlash.read(address, buf, 16);
+    CurieSerialFlash.read(address, buf, 16);
     create_signature(address, sig);
     create_signature(address + 8, sig + 8);
     if (memcmp(buf, sig, 16) != 0) {
@@ -251,7 +251,7 @@ bool test() {
   Serial.println("Checking Read-While-Write (Program Suspend)");
   address = 256;
   while (address < chipsize) { // find a blank space
-    SerialFlash.read(address, buf, 256);
+    CurieSerialFlash.read(address, buf, 256);
     if (is_erased(buf, 256)) break;
     address = address + 256;
   }
@@ -265,19 +265,19 @@ bool test() {
   Serial.print("  write 256 bytes at ");
   Serial.println(address);
   Serial.flush();
-  SerialFlash.write(address, sig, 256);
+  CurieSerialFlash.write(address, sig, 256);
   usec = micros();
-  if (SerialFlash.ready()) {
+  if (CurieSerialFlash.ready()) {
     Serial.println("  error, chip did not become busy after write");
     return false;
   }
-  SerialFlash.read(0, buf2, 8); // read while busy writing
-  while (!SerialFlash.ready()) ; // wait
+  CurieSerialFlash.read(0, buf2, 8); // read while busy writing
+  while (!CurieSerialFlash.ready()) ; // wait
   usec = micros() - usec;
   Serial.print("  write time was ");
   Serial.print(usec);
   Serial.println(" microseconds.");
-  SerialFlash.read(address, buf, 256);
+  CurieSerialFlash.read(address, buf, 256);
   if (memcmp(buf, sig, 256) != 0) {
     Serial.println("  error writing to flash");
     Serial.print("  Read this: ");
@@ -308,15 +308,15 @@ bool test() {
     memset(buf, 0, sizeof(buf));
     memset(sig, 0, sizeof(sig));
     memset(buf2, 0, sizeof(buf2));
-    SerialFlash.eraseBlock(262144);
+    CurieSerialFlash.eraseBlock(262144);
     usec = micros();
     delayMicroseconds(50);
-    if (SerialFlash.ready()) {
+    if (CurieSerialFlash.ready()) {
       Serial.println("  error, chip did not become busy after erase");
       return false;
     }
-    SerialFlash.read(0, buf2, 8); // read while busy writing
-    while (!SerialFlash.ready()) ; // wait
+    CurieSerialFlash.read(0, buf2, 8); // read while busy writing
+    while (!CurieSerialFlash.ready()) ; // wait
     usec = micros() - usec;
     Serial.print("  erase time was ");
     Serial.print(usec);
@@ -326,7 +326,7 @@ bool test() {
     address = 0;
     first = true;
     while (address < chipsize) {
-      SerialFlash.read(address, buf, 8);
+      CurieSerialFlash.read(address, buf, 8);
       if (address >= 262144 && address < 262144 + blocksize) {
         if (is_erased(buf, 8) == false) {
           Serial.print("  error in erasing at ");

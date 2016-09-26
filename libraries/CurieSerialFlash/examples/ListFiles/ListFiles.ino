@@ -22,17 +22,17 @@ void setup() {
   delay(100);
   Serial.println("All Files on SPI Flash chip:");
 
-  if (!SerialFlash.begin(SPI1, FlashChipSelect)) {
+  if (!CurieSerialFlash.begin(SPI1, FlashChipSelect)) {
     error("Unable to access SPI Flash chip");
   }
 
-  SerialFlash.opendir();
+  CurieSerialFlash.opendir();
   unsigned int count = 0;
   while (1) {
     char filename[64];
     unsigned long filesize;
 
-    if (SerialFlash.readdir(filename, sizeof(filename), filesize)) {
+    if (CurieSerialFlash.readdir(filename, sizeof(filename), filesize)) {
       Serial.print("  ");
       Serial.print(filename);
       spaces(20 - strlen(filename));

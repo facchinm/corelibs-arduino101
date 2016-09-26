@@ -18,7 +18,7 @@ void setup() {
   delay(100);
 
   // Init. SPI Flash chip
-  if (!SerialFlash.begin(SPI1, FlashChipSelect)) {
+  if (!CurieSerialFlash.begin(SPI1, FlashChipSelect)) {
     Serial.println("Unable to access SPI Flash chip");
   }
 
@@ -31,15 +31,15 @@ void setup() {
   }
 
   // Open the file and write test data
-  file = SerialFlash.open(filename);
+  file = CurieSerialFlash.open(filename);
   file.write(contents, strlen(contents) + 1);
   Serial.println("String \"" + String(contents) + "\" written to file " + String(filename));
 }
 
 bool create_if_not_exists (const char *filename) {
-  if (!SerialFlash.exists(filename)) {
+  if (!CurieSerialFlash.exists(filename)) {
     Serial.println("Creating file " + String(filename));
-    return SerialFlash.create(filename, FSIZE);
+    return CurieSerialFlash.create(filename, FSIZE);
   }
 
   Serial.println("File " + String(filename) + " already exists");
