@@ -52,7 +52,7 @@ void pinMode( uint8_t pin, uint8_t mode )
 
     /* Set SoC pin mux configuration */
     SET_PIN_PULLUP(p->ulSocPin, (mode == INPUT_PULLUP) ? 1 : 0);
-    SET_PIN_MODE(p->ulSocPin, GPIO_MUX_MODE);
+    SET_PIN_MODE(p->ulSocPin, p->ulPinMode);
     if(pinmuxMode[pin] != GPIO_MUX_MODE)
     {
         pinmuxMode[pin] = GPIO_MUX_MODE;
@@ -68,7 +68,7 @@ void digitalWrite( uint8_t pin, uint8_t val )
     if(pinmuxMode[pin] != GPIO_MUX_MODE)
     {
         pinmuxMode[pin] = GPIO_MUX_MODE;
-        SET_PIN_MODE(p->ulSocPin, GPIO_MUX_MODE);
+        SET_PIN_MODE(p->ulSocPin, p->ulPinMode);
     }
     
 	if (p->ulGPIOType == SS_GPIO) {

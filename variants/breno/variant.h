@@ -87,6 +87,7 @@ extern "C"{
  * GPIO
  */
 #define GPIO_MUX_MODE       QRK_PMUX_SEL_MODEA
+#define GPIO_MUX_MODE_ALTERNATE       QRK_PMUX_SEL_MODEB
 
 #define SS_GPIO  1
 #define SOC_GPIO 2
