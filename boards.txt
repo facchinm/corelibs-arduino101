@@ -32,4 +32,30 @@ arduino_101.bootloader.tool=arduino101load
 
 ##############################################################
 
+breno.name=Arduino MKRBreno 2100
+
+breno.vid.0=0x2341
+breno.pid.0=0x8051
+
+breno.upload.tool=arduino101load
+breno.upload.protocol=script
+breno.upload.maximum_size=155648
+breno.upload.use_1200bps_touch=true
+breno.upload.wait_for_upload_port=false
+breno.upload.native_usb=false
+breno.upload.params.quiet=-q
+breno.upload.params.verbose=-q
+
+breno.build.usb_product="Arduino 101"
+breno.build.mcu=ARCv2EM
+breno.build.f_cpu=32000000L
+breno.build.board=ARC32_TOOLS
+breno.build.core=arduino
+breno.build.ldscript=linker_scripts/flash.ld
+breno.build.variant=breno
+breno.build.variant_system_lib=arc32drv_arduino101
+breno.build.vid=0x2341
+breno.build.pid=0x8051
+
+breno.bootloader.tool=arduino101load
 
