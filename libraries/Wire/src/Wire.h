@@ -49,6 +49,7 @@ public:
 	virtual int read(void);
 	virtual int peek(void);
 	virtual void flush(void);
+	void end(void) {};
 
 	inline size_t write(unsigned long n) { return write((uint8_t)n); }
 	inline size_t write(long n) { return write((uint8_t)n); }
@@ -74,6 +75,9 @@ private:
 
 #if WIRE_INTERFACES_COUNT > 0
 extern TwoWire Wire;
+#endif
+#if WIRE_INTERFACES_COUNT > 1
+extern TwoWire Wire1;
 #endif
 
 #endif

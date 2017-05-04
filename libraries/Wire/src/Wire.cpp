@@ -198,3 +198,4 @@ void TwoWire::flush(void)
 // Preinstantiate Objects //////////////////////////////////////////////////////
 
 TwoWire Wire = TwoWire(I2C_SENSING_0);
+TwoWire Wire1 = TwoWire(I2C_SENSING_1);
