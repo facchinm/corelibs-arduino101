@@ -97,7 +97,7 @@ tools.arduino101load.ble.fw.position=169984
 tools.arduino101load.rtos.fw.string=""
 tools.arduino101load.rtos.fw.position=0
 #not ideal - should be inherited by the platform
-tools.arduino101load.version=2.1.0
+tools.arduino101load.firmware.path={runtime.platform.path}/firmware/{build.variant}/2.1.0
 
 # Arc Uploader/Programmers tools
 # -------------------
@@ -106,7 +106,7 @@ tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load
 tools.arduino101load.upload.params.verbose=-v
 tools.arduino101load.upload.params.quiet=-q
 
-tools.arduino101load.upload.pattern="{cmd.path}" "-dfu={runtime.tools.dfu-util.path}" "-bin={build.path}/{build.project_name}.bin" -port={serial.port} "{upload.verbose}" -ble_fw_str={ble.fw.string} -ble_fw_pos={ble.fw.position} -rtos_fw_str={rtos.fw.string} -rtos_fw_pos={rtos.fw.position} -core={version}
+tools.arduino101load.upload.pattern="{cmd.path}" "-dfu={runtime.tools.dfu-util.path}" "-bin={build.path}/{build.project_name}.bin" -port={serial.port} "{upload.verbose}" -ble_fw_str={ble.fw.string} -ble_fw_pos={ble.fw.position} -rtos_fw_str={rtos.fw.string} -rtos_fw_pos={rtos.fw.position} "-core={firmware.path}"
 
 # This is needed to avoid an error on unexistent fields
 tools.arduino101load.erase.params.verbose=
@@ -114,4 +114,4 @@ tools.arduino101load.erase.params.quiet=
 tools.arduino101load.erase.pattern=
 tools.arduino101load.bootloader.params.verbose=-v
 tools.arduino101load.bootloader.params.quiet=-q
-tools.arduino101load.bootloader.pattern="{cmd.path}" "-dfu={runtime.tools.dfu-util.path}"  -port={serial.port} "{bootloader.verbose}" -f -core={version}
+tools.arduino101load.bootloader.pattern="{cmd.path}" "-dfu={runtime.tools.dfu-util.path}"  -port={serial.port} "{bootloader.verbose}" -f "-core={firmware.path}"
