@@ -96,8 +96,7 @@ tools.arduino101load.ble.fw.string="ATP1BLE00R-1631C4439"
 tools.arduino101load.ble.fw.position=169984
 tools.arduino101load.rtos.fw.string=""
 tools.arduino101load.rtos.fw.position=0
-#not ideal - should be inherited by the platform
-tools.arduino101load.firmware.path={runtime.platform.path}/firmware/{build.variant}/2.1.0
+tools.arduino101load.firmware.path={runtime.platform.path}/firmwares/{build.variant}
 
 # Arc Uploader/Programmers tools
 # -------------------
