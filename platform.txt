@@ -100,7 +100,7 @@ tools.arduino101load.firmware.path={runtime.platform.path}/firmwares/{build.vari
 
 # Arc Uploader/Programmers tools
 # -------------------
-tools.arduino101load.cmd.path={runtime.tools.arduino101load.path}/arduino101load
+tools.arduino101load.cmd.path={runtime.tools.arduino101load-2.2.0.path}/arduino101load
 
 tools.arduino101load.upload.params.verbose=-v
 tools.arduino101load.upload.params.quiet=-q
