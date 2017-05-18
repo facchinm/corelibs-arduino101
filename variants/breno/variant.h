@@ -62,6 +62,8 @@ extern "C"{
 #define PIN_LED              PIN_LED_25
 #define LED_BUILTIN          25
 
+#define ESLOV_WAKEUP         26
+
 /*
  * Other Pins
  */
