@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-     
+
 #include <errno.h>
 
 #include <string.h>
@@ -76,6 +76,15 @@ static void *ble_client_update_param_event_param;
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+static bool initilized = false;
+
+inline void ble_cfw_init() {
+    if (!initilized) {
+        ble_cfw_service_init(BLE_SERVICE_ID, cfw_get_service_queue());
+        initilized = true;
+    }
+}
 
 static void on_connected(bt_conn_t *conn, uint8_t err)
 {
