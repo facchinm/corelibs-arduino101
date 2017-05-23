@@ -177,21 +177,25 @@ void ss_spi_disable(SPI_CONTROLLER controller_id)
 static inline void spi_transmit(spi_info_pt dev, uint8_t *buf, size_t count,
                                 boolean_t waitCompletion)
 {
+
     while (count--) {
         if (READ_ARC_REG(dev->reg_base + SR) & SPI_STATUS_TFNF) {
             WRITE_ARC_REG(SPI_PUSH_DATA | *buf++, dev->reg_base + DR);
         }
     }
 
+    int timeout = 10000;
+
     /* Wait for transfer to complete */
     if (waitCompletion)
-        while (READ_ARC_REG(dev->reg_base + SR) & SPI_STATUS_BUSY)
+        while ((READ_ARC_REG(dev->reg_base + SR) & SPI_STATUS_BUSY) && timeout --)
             ;
 }
 
 static inline void spi_receive(spi_info_pt dev, uint8_t *buf, size_t count)
 {
-    while (count) {
+    int timeout = 10000;
+    while (count && timeout--) {
         if (READ_ARC_REG(dev->reg_base + RXFLR) > 0) {
             WRITE_ARC_REG(SPI_POP_DATA, dev->reg_base + DR);
             *buf++ = READ_ARC_REG(dev->reg_base + DR);
