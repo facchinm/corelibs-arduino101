@@ -93,12 +93,14 @@ typedef struct gpio_info_struct
     ISR                gpio_isr;       /*!< GPIO ISR */
     uint32_t           gpio_int_mask;  /*!< SSS Interrupt Routing Mask Registers */
     gpio_callback_fn  *gpio_cb;        /*!< Array of user callback functions for user */
+    void*             *gpio_param;     /*!< Array of user callback functions for user */
     uint8_t            is_init;        /*!< Init state of GPIO port */
 } gpio_info_t, *gpio_info_pt;
 
 static gpio_callback_fn ss_gpio0_cb[SS_GPIO_8B0_BITS] = {NULL};
 static gpio_callback_fn ss_gpio1_cb[SS_GPIO_8B1_BITS] = {NULL};
-
+static void* ss_gpio0_param[SS_GPIO_8B0_BITS] = {NULL};
+static void* ss_gpio1_param[SS_GPIO_8B1_BITS] = {NULL};
 
 static gpio_info_t   gpio_ports_devs[] = {
         { .is_init = 0,
@@ -107,6 +109,7 @@ static gpio_info_t   gpio_ports_devs[] = {
           .gpio_int_mask = INT_SS_GPIO_0_INTR_MASK,
           .vector = IO_GPIO_8B0_INT_INTR_FLAG,
           .gpio_cb = ss_gpio0_cb,
+          .gpio_param = ss_gpio0_param,
           .gpio_isr = ss_gpio_8b0_ISR },
         { .is_init = 0,
           .reg_base = AR_IO_GPIO_8B1_SWPORTA_DR,
@@ -114,6 +117,7 @@ static gpio_info_t   gpio_ports_devs[] = {
           .gpio_int_mask = INT_SS_GPIO_1_INTR_MASK,
           .vector = IO_GPIO_8B1_INT_INTR_FLAG,
           .gpio_cb = ss_gpio1_cb,
+          .gpio_param = ss_gpio1_param,
           .gpio_isr = ss_gpio_8b1_ISR }
         };
 
@@ -137,6 +141,7 @@ DRIVER_API_RC ss_gpio_deconfig(SS_GPIO_PORT port_id, uint8_t bit)
     CLEAR_ARC_BIT((volatile uint32_t *)(dev->reg_base+INTEN), bit);
     /* De-Configure interrupt handler */
     dev->gpio_cb[bit] = NULL;
+    dev->gpio_param[bit] = NULL;
     /* Configure as input */
     CLEAR_ARC_BIT((volatile uint32_t *)(dev->reg_base+SWPORTA_DDR), bit);
 
@@ -364,7 +369,7 @@ static void ss_gpio_ISR_proc( uint32_t dev_id )
 
     for (i=0; i<dev->no_bits; i++) {
         if ((status & (1 << i)) && (dev->gpio_cb[i])) {
-	    dev->gpio_cb[i]();
+	    dev->gpio_cb[i](dev->gpio_param[i]);
         }
     }
     /* Unmask the handled IRQs */

@@ -33,7 +33,7 @@
 
 #include "data_type.h"
 
-typedef void (*gpio_callback_fn)(void);
+typedef void (*gpio_callback_fn)(void*);
 
 /*!
  * GPIO types
@@ -87,6 +87,7 @@ typedef struct gpio_cfg_data {
     INT_DEBOUNCE      int_debounce;      /*!< GPIO debounce configuration */
     INT_LS_SYNC       int_ls_sync;       /*!< GPIO ls sync configuration */
     gpio_callback_fn  gpio_cb;           /*!< Callback function called when an interrupt is triggered on this pin */
+    void*             gpio_param;        /*!< Parameters for callback function called when an interrupt is triggered on this pin */
 } gpio_cfg_data_t;
 
 /*!
@@ -101,6 +102,7 @@ typedef struct gpio_port_cfg_data {
     uint32_t           int_debounce;     /*!< GPIO debounce configuration (0=OFF, 1=ON) */
     uint32_t           int_ls_sync;      /*!< GPIO ls sync configuration (0=OFF, 1=ON) */
     gpio_callback_fn   gpio_cb[32];      /*!< Callback function called when an interrupt is triggered on this pin */
+    void*              gpio_param[32];   /*!< Callback function called when an interrupt is triggered on this pin */
 } gpio_port_cfg_data_t;
 
 #endif  /* GPIO_IFACE_H_ */

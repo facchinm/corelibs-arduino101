@@ -53,6 +53,7 @@ DECLARE_INTERRUPT_HANDLER void gpio_isr()
     soc_gpio_ISR_proc(SOC_GPIO_32);
 }
 static gpio_callback_fn soc_gpio_32_cb[SOC_GPIO_32_BITS] = {NULL};
+static void* soc_gpio_32_param[SOC_GPIO_32_BITS] = {NULL};
 #endif
 
 #if defined(CONFIG_SOC_GPIO_AON)
@@ -63,6 +64,7 @@ DECLARE_INTERRUPT_HANDLER void gpio_aon_isr()
     soc_gpio_ISR_proc(SOC_GPIO_AON);
 }
 static gpio_callback_fn soc_gpio_aon_cb[SOC_GPIO_AON_BITS] = {NULL};
+static void* soc_gpio_aon_param[SOC_GPIO_AON_BITS] = {NULL};
 #endif
 
 typedef void (*ISR) ();
@@ -77,6 +79,7 @@ typedef struct gpio_info_struct
     ISR                gpio_isr;       /*!< GPIO ISR */
     uint32_t           gpio_int_mask;  /*!< SSS Interrupt Routing Mask Registers */
     gpio_callback_fn  *gpio_cb;        /*!< Array of user callback functions for user */
+    void*             *gpio_param;     /*!< Array of user callback functions for user */
     uint8_t            is_init;        /*!< Init state of GPIO port */
 } gpio_info_t, *gpio_info_pt;
 
@@ -88,6 +91,7 @@ static gpio_info_t gpio_ports_devs[] = {
           .gpio_int_mask = INT_GPIO_MASK,
           .vector = SOC_GPIO_INTERRUPT,
           .gpio_cb = soc_gpio_32_cb,
+          .gpio_param = soc_gpio_32_param,
           .gpio_isr = gpio_isr },
 #endif
 #if defined(CONFIG_SOC_GPIO_AON)
@@ -97,6 +101,7 @@ static gpio_info_t gpio_ports_devs[] = {
           .gpio_int_mask = INT_AON_GPIO_MASK,
           .vector = SOC_GPIO_AON_INTERRUPT,
           .gpio_cb = soc_gpio_aon_cb,
+          .gpio_param = soc_gpio_aon_param,
           .gpio_isr = gpio_aon_isr },
 #endif
         };
@@ -145,6 +150,7 @@ DRIVER_API_RC soc_gpio_set_config(SOC_GPIO_PORT port_id, uint8_t bit, gpio_cfg_d
 
     // Set interrupt handler to NULL
     dev->gpio_cb[bit] = NULL;
+    dev->gpio_param[bit] = NULL;
 
     switch(config->gpio_type)
     {
@@ -160,6 +166,7 @@ DRIVER_API_RC soc_gpio_set_config(SOC_GPIO_PORT port_id, uint8_t bit, gpio_cfg_d
         saved = interrupt_lock();
         // Configure interrupt handler
         dev->gpio_cb[bit] = config->gpio_cb;
+        dev->gpio_param[bit] = config->gpio_param;
 
         /* Set as  input */
         MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_SWPORTA_DDR) &= ~(1 << bit);
@@ -226,6 +233,7 @@ DRIVER_API_RC soc_gpio_set_port_config(SOC_GPIO_PORT port_id, gpio_port_cfg_data
 
     for(i=0; i<dev->no_bits; i++) {
         dev->gpio_cb[i] = config->gpio_cb[i];
+        dev->gpio_param[i] = config->gpio_param[i];
     }
 
     // Set gpio direction
@@ -437,7 +445,7 @@ static void soc_gpio_ISR_proc( uint32_t dev_id )
 
     for (i=0; i<dev->no_bits; i++) {
         if ((status & (1 << i)) && (dev->gpio_cb[i]))
-	    dev->gpio_cb[i]();
+	    dev->gpio_cb[i](dev->gpio_param[i]);
     }
     // Unmask the handled interrupts
     MMIO_REG_VAL_FROM_BASE(dev->reg_base, SOC_GPIO_INTMASK) &= ~status;
