@@ -29,7 +29,23 @@ static uint32_t irq_flags;
  * interrupts() */
 static uint32_t noInterrupts_executed;
 
+
 void attachInterrupt(uint32_t pin, void(*callback)(void), uint32_t mode)
+{
+  // THIS IMPLEMENTATION IS NOT PORTABLE!
+  // 
+  // On AVR's calling convention, calling a function with more arguments than it declares 
+  // is OK - The extra parameter is ignored and causes no harm
+  //
+  // This implementation takes advantage of it to support callbacks with and without parameters with minimum overhead.
+  attachInterruptParam(pin, (voidFuncPtrParam)callback, mode, NULL);
+}
+
+/*
+ * \brief Specifies a named Interrupt Service Routine (ISR) to call when an interrupt occurs.
+ *        Replaces any previous function that was attached to the interrupt.
+ */
+void attachInterruptParam(uint32_t pin, void(*callback)(void*), uint32_t mode, void* param)
 {
     if (pin >= NUM_DIGITAL_PINS) {
 #ifdef DEBUG
@@ -87,6 +103,7 @@ void attachInterrupt(uint32_t pin, void(*callback)(void), uint32_t mode)
     config.int_debounce = DEBOUNCE_ON;
     config.int_ls_sync = LS_SYNC_OFF;
     config.gpio_cb = callback;
+    config.gpio_param = param;
 
     if (p->ulGPIOType == SS_GPIO)
         ret = ss_gpio_set_config(p->ulGPIOPort, p->ulGPIOId, &config);
